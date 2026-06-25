@@ -20,7 +20,6 @@ cmake --build build-release --target Atlas_All -j2
 
 At minimum:
 
-- open the standalone app
 - open AU in Reaper
 - open VST3 in Reaper
 - check VoiceOver groups

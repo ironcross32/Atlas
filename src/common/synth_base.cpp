@@ -299,6 +299,10 @@ vital::Sample* SynthBase::getSample() {
   return engine_->getSample();
 }
 
+vital::Sample* SynthBase::getGranularSample() {
+  return engine_->getGranularSample();
+}
+
 LineGenerator* SynthBase::getLfoSource(int index) {
   return engine_->getLfoSource(index);
 }
@@ -318,6 +322,7 @@ void SynthBase::initEngine() {
       getWavetableCreator(i)->init();
 
     engine_->getSample()->init();
+    engine_->getGranularSample()->init();
   }
 
   for (int i = 0; i < vital::kNumLfos; ++i)

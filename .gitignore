@@ -9,8 +9,9 @@ xcshareddata
 *.xcworkspace
 build
 build-*
-!installer/build-pkg.sh
-dist/
+dist/*
+!dist/
+!dist/Atlas-*.pkg
 dist.zip
 .clang_complete
 .vs
@@ -35,6 +36,7 @@ dist.zip
 *.vst3
 *.tar.gz
 *.pkg
+!dist/Atlas-*.pkg
 Debug
 Profile
 Release

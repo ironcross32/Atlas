@@ -524,7 +524,7 @@ namespace {
   }
 
   int sectionRank(const String& section) {
-    static const std::array<const char*, 49> order = {{
+    static const std::array<const char*, 51> order = {{
       "Master and global",
       kPresetSection,
       "Voice and performance",
@@ -534,6 +534,7 @@ namespace {
       "Oscillator 3",
       "Oscillator 4",
       "Sample",
+      "Granular",
       "Filter 1",
       "Filter 2",
       kEffectsChainSection,
@@ -573,6 +574,7 @@ namespace {
       "Zones - Oscillator 3",
       "Zones - Oscillator 4",
       "Zones - Sample",
+      "Zones - Granular",
       "Other"
     }};
 
@@ -592,7 +594,7 @@ namespace {
   String groupForSection(const String& section) {
     if (section == kPresetSection)
       return "Presets";
-    if (section.startsWith("Oscillator") || section == "Sample")
+    if (section.startsWith("Oscillator") || section == "Sample" || section == "Granular")
       return "Oscillators";
     if (section == "Voice and performance" || section == kSignalRoutingSection)
       return "Mixer and routing";
@@ -759,6 +761,52 @@ namespace {
       return 4590;
     }
 
+    if (id.startsWith("granular_")) {
+      const String suffix = id.fromFirstOccurrenceOf("granular_", false, false);
+      static const std::array<const char*, 35> granular_order = {{
+        "on",
+        "destination",
+        "mode",
+        "keytrack",
+        "grain_count",
+        "density",
+        "midi_density",
+        "grain_size",
+        "speed",
+        "position",
+        "position_mod",
+        "position_mod_rate",
+        "random_position",
+        "random_volume",
+        "random_pan",
+        "random_pitch",
+        "interval",
+        "interval_chance",
+        "direction",
+        "start",
+        "end",
+        "low_cutoff",
+        "high_cutoff",
+        "transpose",
+        "tune",
+        "transpose_quantize_key",
+        "transpose_quantize_scale",
+        "transpose_quantize_mode",
+        "transpose_quantize",
+        "key_zone_start",
+        "key_zone_end",
+        "velocity_zone_start",
+        "velocity_zone_end",
+        "level",
+        "pan"
+      }};
+      for (int i = 0; i < static_cast<int>(granular_order.size()); ++i) {
+        if (suffix == granular_order[i])
+          return 4600 + i;
+      }
+      return 4690;
+    }
+
     const int modulation_slot = modulationSlotForParameterId(id);
     if (modulation_slot > 0)
       return 200000 + modulation_slot * 10 + modulationParameterSuffixRank(id);
@@ -769,7 +817,7 @@ namespace {
     if (isMacroBipolarParameterId(id))
       return 11000 + id.fromFirstOccurrenceOf("macro_bipolar_", false, false).getIntValue();
 
-    static const std::array<const char*, 47> priority = {{
+    static const std::array<const char*, 49> priority = {{
       "volume",
       "polyphony",
       "oversampling",
@@ -783,6 +831,8 @@ namespace {
       "osc_4_destination",
       "sample_on",
       "sample_destination",
+      "granular_on",
+      "granular_destination",
       "filter_1_on",
       "filter_1_filter_input",
       "filter_1_osc1_input",
@@ -932,6 +982,9 @@ namespace {
     if (id == "sample_key_zone_start" || id == "sample_key_zone_end" ||
         id == "sample_velocity_zone_start" || id == "sample_velocity_zone_end")
       return "Zones - Sample";
+    if (id == "granular_key_zone_start" || id == "granular_key_zone_end" ||
+        id == "granular_velocity_zone_start" || id == "granular_velocity_zone_end")
+      return "Zones - Granular";
     if (isRoutingParameter(id))
       return (id == "effect_chain_order" || id == "post_effect_order" || id.startsWith("effect_chain_slot_") ||
               id.endsWith("effect_chain_order") || id.endsWith("post_effect_order") ||
@@ -942,6 +995,7 @@ namespace {
         return "Oscillator " + String(osc);
     }
     if (id.startsWith("sample_")) return "Sample";
+    if (id.startsWith("granular_")) return "Granular";
     if (id.startsWith("filter_1")) return "Filter 1";
     if (id.startsWith("filter_2")) return "Filter 2";
     if (id.startsWith("env_1")) return "Envelope 1";
@@ -2904,7 +2958,7 @@ std::unique_ptr<AccessibleParameterRow> SynthEditor::createAccessibleParameterRo
   }
 
   if ((parameter_id.startsWith("osc_") && parameter_id.endsWith("_destination")) ||
-      parameter_id == "sample_destination") {
+      parameter_id == "sample_destination" || parameter_id == "granular_destination") {
     const double max_normalized = bridge->convertToPluginValue(static_cast<float>(vital::constants::kBus3));
     return std::make_unique<AccessibleParameterRow>(parameter, "Destination",
                                                     [bridge](double value) {
@@ -3309,6 +3363,16 @@ void SynthEditor::showSection(int index, bool announce) {
     addActionButton("Previous sample", "Load the previous sample", [this] { loadShiftedSample(-1); });
     addActionButton("Next sample", "Load the next sample", [this] { loadShiftedSample(1); });
   }
+  else if (section_name == "Granular") {
+    addActionButton("Load sample", "Load an audio sample for Granular",
+                    [this] { chooseSampleFile(true); });
+    addActionButton("Browse sample folders", "Browse sample folders for Granular",
+                    [this] { showSampleBrowserMenu(rows_container_, true); });
+    addActionButton("Previous sample", "Load the previous sample into Granular",
+                    [this] { loadShiftedSample(-1, true); });
+    addActionButton("Next sample", "Load the next sample into Granular",
+                    [this] { loadShiftedSample(1, true); });
+  }
 
   if (routing_controls_visible_) {
     refreshRoutingControls();
@@ -3711,6 +3775,16 @@ void SynthEditor::showAllSections(bool announce) {
                         [this, section_ptr] { showSampleBrowserMenu(*section_ptr); });
         addActionButton("Previous sample", "Load the previous sample", [this] { loadShiftedSample(-1); });
         addActionButton("Next sample", "Load the next sample", [this] { loadShiftedSample(1); });
+      }
+      else if (section_name == "Granular") {
+        addActionButton("Load sample", "Load an audio sample for Granular",
+                        [this] { chooseSampleFile(true); });
+        addActionButton("Browse sample folders", "Browse sample folders for Granular",
+                        [this, section_ptr] { showSampleBrowserMenu(*section_ptr, true); });
+        addActionButton("Previous sample", "Load the previous sample into Granular",
+                        [this] { loadShiftedSample(-1, true); });
+        addActionButton("Next sample", "Load the next sample into Granular",
+                        [this] { loadShiftedSample(1, true); });
       }
       else if (section_name == kSignalRoutingSection) {
         refreshRoutingControls();
@@ -5327,6 +5401,7 @@ void SynthEditor::updateRoutingSummary() {
   }
   summary +=
       "; Sample to " + textFor("sample_destination") +
+      "; Granular to " + textFor("granular_destination") +
       "; Filter 1 to " + textFor("filter_1_destination") +
       "; Filter 2 to " + textFor("filter_2_destination") +
       ". Filter link: " +
@@ -5379,6 +5454,7 @@ void SynthEditor::applyRoutingPreset(int preset) {
     setParameterEngineValue("osc_3_destination", vital::constants::kEffects);
     setParameterEngineValue("osc_4_destination", vital::constants::kEffects);
     setParameterEngineValue("sample_destination", vital::constants::kEffects);
+    setParameterEngineValue("granular_destination", vital::constants::kEffects);
     setParameterEngineValue("filter_1_destination", vital::constants::kEffects);
     setParameterEngineValue("filter_2_destination", vital::constants::kEffects);
     setParameterEngineValue("filter_1_filter_input", 0.0f);
@@ -6456,18 +6532,19 @@ void SynthEditor::showWavetableBrowserMenu(int oscillator, Component& target) {
   });
 }
 
-void SynthEditor::chooseSampleFile() {
-  sample_chooser_ = std::make_unique<FileChooser>("Load audio sample", File(), vital::kSampleExtensionsList);
+void SynthEditor::chooseSampleFile(bool granular) {
+  sample_chooser_ = std::make_unique<FileChooser>(granular ? "Load granular sample" : "Load audio sample",
+                                                  File(), vital::kSampleExtensionsList);
   sample_chooser_->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
-                               [this](const FileChooser& chooser) {
+                               [this, granular](const FileChooser& chooser) {
     const auto file = chooser.getResult();
     if (file.existsAsFile())
-      loadSampleFile(file);
+      loadSampleFile(file, granular);
     sample_chooser_.reset();
   });
 }
 
-void SynthEditor::loadSampleFile(const File& file) {
+void SynthEditor::loadSampleFile(const File& file, bool granular) {
   static constexpr int kMaxFileSamples = 17640000;
 
   try {
@@ -6485,7 +6562,7 @@ void SynthEditor::loadSampleFile(const File& file) {
     sample_buffer.setSize(static_cast<int>(format_reader->numChannels), num_samples);
     format_reader->read(&sample_buffer, 0, num_samples, 0, true, true);
 
-    auto* sample = synth_.getSample();
+    auto* sample = granular ? synth_.getGranularSample() : synth_.getSample();
     if (sample == nullptr)
       throw std::runtime_error("Sample engine is unavailable");
 
@@ -6499,6 +6576,9 @@ void SynthEditor::loadSampleFile(const File& file) {
     sample->setLastBrowsedFile(file.getFullPathName().toStdString());
     synth_.pauseProcessing(false);
 
+    if (granular)
+      setParameterEngineValue("granular_on", 1.0f);
+
     postPluginAnnouncement("Loaded sample " + file.getFileNameWithoutExtension(),
                                            AccessibilityHandler::AnnouncementPriority::high);
   }
@@ -6511,8 +6591,8 @@ void SynthEditor::loadSampleFile(const File& file) {
   }
 }
 
-void SynthEditor::loadShiftedSample(int direction) {
-  auto* sample = synth_.getSample();
+void SynthEditor::loadShiftedSample(int direction, bool granular) {
+  auto* sample = granular ? synth_.getGranularSample() : synth_.getSample();
   const File current_file(sample != nullptr ? sample->getLastBrowsedFile() : std::string());
   const auto roots = browserRootsWithAdditionalFolders(LoadSave::kSampleFolderName,
                                                        LoadSave::kAdditionalSampleFoldersName);
@@ -6523,7 +6603,7 @@ void SynthEditor::loadShiftedSample(int direction) {
 
   File sample_file = shiftedBrowserFile(cached_sample_browser_files_, current_file, direction);
   if (sample_file.existsAsFile()) {
-    loadSampleFile(sample_file);
+    loadSampleFile(sample_file, granular);
     return;
   }
 
@@ -6531,7 +6611,7 @@ void SynthEditor::loadShiftedSample(int direction) {
                                          AccessibilityHandler::AnnouncementPriority::high);
 }
 
-void SynthEditor::showSampleBrowserMenu(Component& target) {
+void SynthEditor::showSampleBrowserMenu(Component& target, bool granular) {
   const auto roots = browserRootsWithAdditionalFolders(LoadSave::kSampleFolderName,
                                                        LoadSave::kAdditionalSampleFoldersName);
   if (!sample_browser_cache_valid_) {
@@ -6543,11 +6623,11 @@ void SynthEditor::showSampleBrowserMenu(Component& target) {
   PopupMenu menu = createFileBrowserMenu(roots, LoadSave::kSampleFolderName,
                                          cached_sample_browser_files_, choices);
   menu.showMenuAsync(PopupMenu::Options().withTargetComponent(&target),
-                     [this, choices](int result) {
+                     [this, choices, granular](int result) {
     if (!isPositiveAndBelow(result - 1, static_cast<int>(choices->size())))
       return;
 
-    loadSampleFile((*choices)[static_cast<size_t>(result - 1)]);
+    loadSampleFile((*choices)[static_cast<size_t>(result - 1)], granular);
   });
 }
 

@@ -172,6 +172,10 @@ json LoadSave::stateToJson(SynthBase* synth, const CriticalSection& critical_sec
   if (sample)
     settings_data["sample"] = sample->stateToJson();
 
+  vital::Sample* granular_sample = synth->getGranularSample();
+  if (granular_sample)
+    settings_data["granular_sample"] = granular_sample->stateToJson();
+
   json modulations;
   vital::ModulationConnectionBank& modulation_bank = synth->getModulationBank();
   for (int i = 0; i < vital::kMaxModulationConnections; ++i) {
@@ -291,6 +295,19 @@ void LoadSave::loadSample(SynthBase* synth, const json& json_sample) {
     return;
 
   vital::Sample* sample = synth->getSample();
+  if (sample) {
+    try {
+      sample->jsonToState(json_sample);
+    }
+    catch (const json::exception&) { }
+  }
+}
+
+void LoadSave::loadGranularSample(SynthBase* synth, const json& json_sample) {
+  if (!json_sample.is_object())
+    return;
+
+  vital::Sample* sample = synth->getGranularSample();
   if (sample) {
     try {
       sample->jsonToState(json_sample);
@@ -1174,12 +1191,14 @@ bool LoadSave::jsonToState(SynthBase* synth, std::map<std::string, String>& save
   json settings = objectFieldOrEmpty(data, "settings");
   json modulations = arrayFieldOrEmpty(settings, "modulations");
   json sample = objectFieldOrEmpty(settings, "sample");
+  json granular_sample = objectFieldOrEmpty(settings, "granular_sample");
   json wavetables = arrayFieldOrEmpty(settings, "wavetables");
   json lfos = arrayFieldOrEmpty(settings, "lfos");
 
   loadControls(synth, settings);
   loadModulations(synth, modulations);
   loadSample(synth, sample);
+  loadGranularSample(synth, granular_sample);
   loadWavetables(synth, wavetables);
   loadLfos(synth, lfos);
   loadSaveState(save_info, data);

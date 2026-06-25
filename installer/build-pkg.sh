@@ -14,9 +14,8 @@ fi
 artifacts="$repo_root/build-release/Atlas_artefacts/Release"
 au_bundle="$artifacts/AU/Atlas.component"
 vst3_bundle="$artifacts/VST3/Atlas.vst3"
-standalone_bundle="$artifacts/Standalone/Atlas.app"
 
-for required in "$au_bundle" "$vst3_bundle" "$standalone_bundle"; do
+for required in "$au_bundle" "$vst3_bundle"; do
   if [[ ! -d "$required" ]]; then
     echo "Missing Release artifact: $required" >&2
     echo "Build first with: cmake --build build-release --target Atlas_All -j2" >&2
@@ -34,15 +33,14 @@ if [[ -e "$output_pkg" ]]; then
 fi
 
 /bin/mkdir -p "$package_dir" "$out_dir"
-/bin/mkdir -p "$work_dir/au-root" "$work_dir/vst3-root" "$work_dir/standalone-root"
+/bin/mkdir -p "$work_dir/au-root" "$work_dir/vst3-root"
 /bin/mkdir -p "$work_dir/docs-root/Library/Application Support/Atlas"
 
 /usr/bin/ditto --noextattr --noqtn "$au_bundle" "$work_dir/au-root/Atlas.component"
 /usr/bin/ditto --noextattr --noqtn "$vst3_bundle" "$work_dir/vst3-root/Atlas.vst3"
-/usr/bin/ditto --noextattr --noqtn "$standalone_bundle" "$work_dir/standalone-root/Atlas.app"
 /bin/cp "$repo_root/installer/accessible-layout-guide.html" "$work_dir/docs-root/Library/Application Support/Atlas/Accessible Layout Guide.html"
 
-/usr/bin/xattr -cr "$work_dir/docs-root" "$work_dir/au-root" "$work_dir/vst3-root" "$work_dir/standalone-root" 2>/dev/null || true
+/usr/bin/xattr -cr "$work_dir/docs-root" "$work_dir/au-root" "$work_dir/vst3-root" 2>/dev/null || true
 
 /usr/bin/pkgbuild --root "$work_dir/docs-root" \
   --scripts "$repo_root/installer/pkg-scripts" \
@@ -62,12 +60,6 @@ fi
   --version "$version" \
   --install-location "/Library/Audio/Plug-Ins/VST3" \
   "$package_dir/Atlas-VST3.pkg"
-
-/usr/bin/pkgbuild --root "$work_dir/standalone-root" \
-  --identifier "plugins.alessio.atlas.standalone" \
-  --version "$version" \
-  --install-location "/Applications" \
-  "$package_dir/Atlas-Standalone.pkg"
 
 /usr/bin/sed "s/@VERSION@/$version/g" "$repo_root/installer/Distribution.xml" > "$work_dir/Distribution.xml"
 

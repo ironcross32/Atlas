@@ -54,6 +54,7 @@ namespace {
     { "osc_3_", "Oscillator 3", true },
     { "osc_4_", "Oscillator 4", true },
     { "sample_", "Sample" },
+    { "granular_", "Granular" },
     { "filter_1_", "Filter 1", true },
     { "filter_2_", "Filter 2", true },
     { "filter_fx_", "Filter FX", true },

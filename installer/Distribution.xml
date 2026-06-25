@@ -6,7 +6,6 @@
     <line choice="choice.docs"/>
     <line choice="choice.au"/>
     <line choice="choice.vst3"/>
-    <line choice="choice.standalone"/>
   </choices-outline>
 
   <choice id="choice.docs" title="Accessible layout guide and Atlas folders" visible="false" selected="true" enabled="false">
@@ -18,12 +17,8 @@
   <choice id="choice.vst3" title="VST3" description="Install Atlas.vst3 for VST3 hosts." selected="true">
     <pkg-ref id="plugins.alessio.atlas.vst3"/>
   </choice>
-  <choice id="choice.standalone" title="Standalone app" description="Install Atlas.app in Applications." selected="true">
-    <pkg-ref id="plugins.alessio.atlas.standalone"/>
-  </choice>
 
   <pkg-ref id="plugins.alessio.atlas.docs" version="@VERSION@" onConclusion="none">Atlas-Docs.pkg</pkg-ref>
   <pkg-ref id="plugins.alessio.atlas.au" version="@VERSION@" onConclusion="none">Atlas-AU.pkg</pkg-ref>
   <pkg-ref id="plugins.alessio.atlas.vst3" version="@VERSION@" onConclusion="none">Atlas-VST3.pkg</pkg-ref>
-  <pkg-ref id="plugins.alessio.atlas.standalone" version="@VERSION@" onConclusion="none">Atlas-Standalone.pkg</pkg-ref>
 </installer-gui-script>

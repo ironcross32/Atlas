@@ -460,6 +460,10 @@ namespace vital {
     return voice_handler_->getSample();
   }
 
+  Sample* SoundEngine::getGranularSample() {
+    return voice_handler_->getGranularSample();
+  }
+
   LineGenerator* SoundEngine::getLfoSource(int index) {
     return voice_handler_->getLfoSource(index);
   }

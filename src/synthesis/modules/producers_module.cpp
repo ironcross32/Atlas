@@ -23,6 +23,8 @@ namespace vital {
       SynthModule(kNumInputs, kNumOutputs), sample_destination_(nullptr),
       sample_key_zone_start_(nullptr), sample_key_zone_end_(nullptr),
       sample_velocity_zone_start_(nullptr), sample_velocity_zone_end_(nullptr),
+      granular_destination_(nullptr), granular_key_zone_start_(nullptr), granular_key_zone_end_(nullptr),
+      granular_velocity_zone_start_(nullptr), granular_velocity_zone_end_(nullptr),
       filter1_on_(nullptr), filter2_on_(nullptr) {
     for (int i = 0; i < kNumOscillators; ++i) {
       std::string number = std::to_string(i + 1);
@@ -41,6 +43,11 @@ namespace vital {
     addSubmodule(sampler_);
     addProcessor(sampler_);
     sampler_->enable(false);
+
+    granular_ = new GranularModule();
+    addSubmodule(granular_);
+    addProcessor(granular_);
+    granular_->enable(false);
   }
 
   void ProducersModule::init() {
@@ -67,6 +74,16 @@ namespace vital {
     sampler_->useInput(input(kVoiceEvent), SampleModule::kVoiceEvent);
     sampler_->useInput(input(kNoteCount), SampleModule::kNoteCount);
     sampler_->useInput(input(kMidi), SampleModule::kMidi);
+
+    granular_destination_ = createBaseControl("granular_destination");
+    granular_key_zone_start_ = createBaseControl("granular_key_zone_start");
+    granular_key_zone_end_ = createBaseControl("granular_key_zone_end");
+    granular_velocity_zone_start_ = createBaseControl("granular_velocity_zone_start");
+    granular_velocity_zone_end_ = createBaseControl("granular_velocity_zone_end");
+    granular_->useInput(input(kReset), GranularModule::kReset);
+    granular_->useInput(input(kVoiceEvent), GranularModule::kVoiceEvent);
+    granular_->useInput(input(kNoteCount), GranularModule::kNoteCount);
+    granular_->useInput(input(kMidi), GranularModule::kMidi);
 
     SynthModule::init();
     for (int i = 0; i < kNumOscillators; ++i) {
@@ -104,6 +121,7 @@ namespace vital {
     SynthModule::process(num_samples);
 
     getLocalProcessor(sampler_)->process(num_samples);
+    getLocalProcessor(granular_)->process(num_samples);
 
     SynthOscillator::DistortionType distortion_types[kNumOscillators];
     bool processed[kNumOscillators];
@@ -207,5 +225,37 @@ namespace vital {
       addZonedBuffer(bus3_output, sample, sample_zone_mask, num_samples);
     if (sample_direct_out)
       addZonedBuffer(direct_output, sample, sample_zone_mask, num_samples);
+
+    const poly_float* granular = granular_->output(GranularModule::kLevelled)->buffer;
+    poly_float granular_zone_mask = getZoneMask(granular_key_zone_start_, granular_key_zone_end_,
+                                                granular_velocity_zone_start_, granular_velocity_zone_end_);
+
+    int granular_destination = granular_destination_->value();
+    bool granular_raw = granular_destination == constants::kEffects;
+    bool filter1_granular = granular_destination == constants::kFilter1 ||
+                            granular_destination == constants::kDualFilters;
+    bool filter2_granular = granular_destination == constants::kFilter2 ||
+                            granular_destination == constants::kDualFilters;
+    bool granular_bus1 = granular_destination == constants::kBus1;
+    bool granular_bus2 = granular_destination == constants::kBus2;
+    bool granular_bus3 = granular_destination == constants::kBus3;
+    bool granular_direct_out = granular_destination == constants::kDirectOut;
+    if (granular_raw || (!filter2_granular && filter1_granular && !filter1_on) ||
+                        (!filter1_granular && filter2_granular && !filter2_on) ||
+                        (filter1_granular && filter2_granular && !filter1_on && !filter2_on)) {
+      addZonedBuffer(raw_output, granular, granular_zone_mask, num_samples);
+    }
+    if (filter1_granular)
+      addZonedBuffer(filter1_output, granular, granular_zone_mask, num_samples);
+    if (filter2_granular)
+      addZonedBuffer(filter2_output, granular, granular_zone_mask, num_samples);
+    if (granular_bus1)
+      addZonedBuffer(bus1_output, granular, granular_zone_mask, num_samples);
+    if (granular_bus2)
+      addZonedBuffer(bus2_output, granular, granular_zone_mask, num_samples);
+    if (granular_bus3)
+      addZonedBuffer(bus3_output, granular, granular_zone_mask, num_samples);
+    if (granular_direct_out)
+      addZonedBuffer(direct_output, granular, granular_zone_mask, num_samples);
   }
 } // namespace vital

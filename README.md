@@ -9,7 +9,7 @@ This is based on the open source Vital codebase, but it is not Vital Audio's off
 ## What is different
 
 - A flat, VoiceOver-friendly layout with groups for presets, global controls, oscillators, routing, filters, busses, envelopes, LFOs, effects, modulations, macros, and zones.
-- AU, VST3, and standalone macOS builds.
+- AU and VST3 macOS builds.
 - Four wavetable oscillators.
 - Improved sample oscillator controls.
 - Three effect busses with routing.
@@ -27,7 +27,6 @@ The installer can install:
 
 - Audio Unit
 - VST3
-- Standalone app
 - the accessible layout guide
 
 The guide is installed to:

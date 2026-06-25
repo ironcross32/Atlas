@@ -84,6 +84,7 @@ namespace vital {
       void setChannelRangeSlide(int from_channel, int to_channel, mono_float value, int sample);
       Wavetable* getWavetable(int index);
       Sample* getSample();
+      Sample* getGranularSample();
       LineGenerator* getLfoSource(int index);
 
       void sustainOn(int channel);

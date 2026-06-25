@@ -6,7 +6,6 @@ The installer lets you choose what to install:
 
 - AU: `/Library/Audio/Plug-Ins/Components/Atlas.component`
 - VST3: `/Library/Audio/Plug-Ins/VST3/Atlas.vst3`
-- Standalone: `/Applications/Atlas.app`
 - accessible layout guide
 
 The installer also creates the Atlas content folder if needed:
@@ -40,7 +39,6 @@ Remove whichever files you installed:
 ```sh
 sudo rm -rf "/Library/Audio/Plug-Ins/Components/Atlas.component"
 sudo rm -rf "/Library/Audio/Plug-Ins/VST3/Atlas.vst3"
-sudo rm -rf "/Applications/Atlas.app"
 ```
 
 Your user presets and samples live in `~/Documents/Alessio Plugins/Atlas`, so do not delete that folder unless you really want to remove your data too.

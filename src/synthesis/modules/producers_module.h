@@ -19,6 +19,7 @@
 #include "synth_module.h"
 #include "oscillator_module.h"
 #include "sample_module.h"
+#include "granular_module.h"
 
 namespace vital {
   class ProducersModule : public SynthModule {
@@ -66,7 +67,9 @@ namespace vital {
       }
 
       Sample* getSample() { return sampler_->getSample(); }
+      Sample* getGranularSample() { return granular_->getSample(); }
       Output* samplePhaseOutput() { return sampler_->getPhaseOutput(); }
+      Output* granularPhaseOutput() { return granular_->getPhaseOutput(); }
       void setFilter1On(const Value* on) { filter1_on_ = on; }
       void setFilter2On(const Value* on) { filter2_on_ = on; }
 
@@ -87,6 +90,12 @@ namespace vital {
       Value* sample_velocity_zone_start_;
       Value* sample_velocity_zone_end_;
       SampleModule* sampler_;
+      Value* granular_destination_;
+      Value* granular_key_zone_start_;
+      Value* granular_key_zone_end_;
+      Value* granular_velocity_zone_start_;
+      Value* granular_velocity_zone_end_;
+      GranularModule* granular_;
 
       const Value* filter1_on_;
       const Value* filter2_on_;

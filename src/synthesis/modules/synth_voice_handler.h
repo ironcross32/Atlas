@@ -57,6 +57,7 @@ namespace vital {
       ModulationConnectionBank& getModulationBank() { return modulation_bank_; }
       Wavetable* getWavetable(int index) { return producers_->getWavetable(index); }
       Sample* getSample() { return producers_->getSample(); }
+      Sample* getGranularSample() { return producers_->getGranularSample(); }
       LineGenerator* getLfoSource(int index) { return &lfo_sources_[index]; }
       Output* getDirectOutput() { return getAccumulatedOutput(direct_output_->output()); }
       Output* getBusOutput(int index) { return getAccumulatedOutput(bus_outputs_[index]->output()); }

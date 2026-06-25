@@ -167,10 +167,10 @@ class SynthEditor : public AudioProcessorEditor, public SynthGuiInterface,
     void normalizeWavetableFrame(int oscillator, int frame, bool allFrames);
     void removeWavetableFundamental(int oscillator, int frame, bool allFrames);
     void showWavetableBrowserMenu(int oscillator, Component& target);
-    void chooseSampleFile();
-    void loadSampleFile(const File& file);
-    void showSampleBrowserMenu(Component& target);
-    void loadShiftedSample(int direction);
+    void chooseSampleFile(bool granular = false);
+    void loadSampleFile(const File& file, bool granular = false);
+    void showSampleBrowserMenu(Component& target, bool granular = false);
+    void loadShiftedSample(int direction, bool granular = false);
     void setEffectChainControlsVisible(bool visible);
     void readEffectChainOrder(const String& sectionName, int* order) const;
     void writeEffectChainOrder(const String& sectionName, const int* order);

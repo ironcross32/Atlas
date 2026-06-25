@@ -30,6 +30,8 @@ The built files are placed under:
 
 `build-release/Atlas_artefacts/Release`
 
+Atlas only builds AU and VST3 now. There is no standalone target or app bundle.
+
 ## Package installer
 
 After the release build:
@@ -44,7 +46,7 @@ The package is written to:
 
 Example:
 
-`dist/Atlas-1.0.8.pkg`
+`dist/Atlas-1.1.0.pkg`
 
 If a package with that name already exists, the script adds a timestamp.
 

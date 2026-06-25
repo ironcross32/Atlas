@@ -31,6 +31,17 @@ namespace strings {
     "Continuous per note"
   };
 
+  const std::string kGranularModeNames[] = {
+    "Play-through",
+    "Manual"
+  };
+
+  const std::string kGranularDirectionNames[] = {
+    "Forward",
+    "Reverse",
+    "Random"
+  };
+
   const std::string kPostEffectOrderNames[] = {
     "Frequency Shifter then Limiter",
     "Limiter then Frequency Shifter"

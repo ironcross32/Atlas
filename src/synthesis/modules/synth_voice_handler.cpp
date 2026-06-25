@@ -137,6 +137,7 @@ namespace vital {
     createStatusOutput("random", random_->output());
     createStatusOutput("stereo", stereo_->output());
     createStatusOutput("sample_phase", producers_->samplePhaseOutput());
+    createStatusOutput("granular_phase", producers_->granularPhaseOutput());
     createStatusOutput("num_voices", &num_voices_);
 
     std::string modulation_source_prefix = "modulation_source_";
