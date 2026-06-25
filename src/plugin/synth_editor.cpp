@@ -1733,6 +1733,23 @@ namespace {
         if (key.getKeyCode() == KeyPress::backspaceKey || key.getKeyCode() == KeyPress::deleteKey) {
           if (onDefaultCommand)
             onDefaultCommand();
+          if (auto* handler = getAccessibilityHandler())
+            handler->notifyAccessibilityEvent(AccessibilityEvent::valueChanged);
+          return true;
+        }
+
+        if (key.getKeyCode() == KeyPress::homeKey) {
+          Slider::ScopedDragNotification drag(*this);
+          setValue(getMaximum(), sendNotificationSync);
+          if (auto* handler = getAccessibilityHandler())
+            handler->notifyAccessibilityEvent(AccessibilityEvent::valueChanged);
+          return true;
+        }
+        if (key.getKeyCode() == KeyPress::endKey) {
+          Slider::ScopedDragNotification drag(*this);
+          setValue(getMinimum(), sendNotificationSync);
+          if (auto* handler = getAccessibilityHandler())
+            handler->notifyAccessibilityEvent(AccessibilityEvent::valueChanged);
           return true;
         }
 
@@ -7382,6 +7399,9 @@ bool SynthEditor::focusGroupShortcut(const String& group, const String& fallback
       if (component != nullptr && component->getTitle() == group) {
         ensureComponentVisible(component);
         component->grabKeyboardFocus();
+        const int group_index = group_names_.indexOf(group);
+        if (group_index >= 0)
+          group_selector_.setSelectedItemIndex(group_index, dontSendNotification);
         postPluginAnnouncement(group, AccessibilityHandler::AnnouncementPriority::high);
         return true;
       }
@@ -7426,6 +7446,16 @@ bool SynthEditor::focusShortcutTarget(const KeyPress& key) {
     case 'z': return focusGroupShortcut("Zones");
     case 'g': return focusSectionShortcut("Master and global");
     default: break;
+  }
+
+  if (key.getKeyCode() >= '1' && key.getKeyCode() <= '9') {
+    const int index = key.getKeyCode() - '1';
+    const String group = group_selector_.getText();
+    const auto found = group_sections_.find(group);
+    if (found != group_sections_.end() && isPositiveAndBelow(index, found->second.size())) {
+      selectSectionByName(found->second[index], true);
+      return true;
+    }
   }
 
   return false;

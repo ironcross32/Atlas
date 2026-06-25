@@ -26,6 +26,8 @@ cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
 cmake --build build-release --target Atlas_All -j2
 ```
 
+For a Windows build, visual studio and the windows SDK are required, and the build must be done in one step like this:
+`cmake --build build-release --target Atlas_VST3 --config Release -j2`
 The built files are placed under:
 
 `build-release/Atlas_artefacts/Release`
